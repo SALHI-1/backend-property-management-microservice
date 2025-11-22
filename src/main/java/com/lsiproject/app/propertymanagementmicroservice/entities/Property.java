@@ -24,9 +24,14 @@ import java.time.LocalDateTime;
 @Table(name = "properties")
 public class Property {
 
+    //off-cjain id(in mysql)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idProperty; // Maps to idProperty in UML
+    private Integer idProperty;
+
+    //Link to the Smart Contract's property mapping ID
+    @Column(unique = true, nullable = true) // Nullable until the first transaction confirms
+    private Long onChainId;
 
     private String title;
     private String country;
@@ -53,6 +58,7 @@ public class Property {
     private LocalDateTime updatedAt;
 
     private Boolean isActive; // Flag for soft deletion or listing status
+    private Boolean isAvailable;
     private double rating;
     private int nombreEtoiles;
 
