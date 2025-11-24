@@ -1,4 +1,4 @@
-package com.lsiproject.app.propertymanagementmicroservice.DTOs;
+package com.lsiproject.app.propertymanagementmicroservice.UpdateDTOs;
 
 import com.lsiproject.app.propertymanagementmicroservice.Enums.TypeOfRental;
 import jakarta.validation.constraints.NotBlank;
@@ -13,6 +13,7 @@ public record PropertyUpdateDTO(
         @NotBlank String title,
         @NotBlank String country,
         @NotBlank String city,
+        @NotBlank String address,
         @NotBlank String description,
 
         // Rental Terms (Mandatory update for on-chain integrity)
@@ -20,6 +21,9 @@ public record PropertyUpdateDTO(
         @NotNull Long rentPerMonth,
         @NotNull Long securityDeposit,
 
-        // Status Field (Mandatory for contract update)
-        @NotNull Boolean isAvailable // Maps to _isAvailable in the contract
-) {}
+        @NotNull Boolean isAvailable 
+) {
+    public String fullAddress() {
+        return country + ", " + city + ", " + address;
+    }
+}

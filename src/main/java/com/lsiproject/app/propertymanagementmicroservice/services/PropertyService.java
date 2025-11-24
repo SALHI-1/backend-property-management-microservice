@@ -1,14 +1,18 @@
 package com.lsiproject.app.propertymanagementmicroservice.services;
 
-import com.lsiproject.app.propertymanagementmicroservice.DTOs.PropertyUpdateDTO;
+import com.lsiproject.app.propertymanagementmicroservice.UpdateDTOs.PropertyUpdateDTO;
+import com.lsiproject.app.propertymanagementmicroservice.CreationDTOs.RoomCreationDTO;
 import com.lsiproject.app.propertymanagementmicroservice.Enums.TypeOfRental;
 import com.lsiproject.app.propertymanagementmicroservice.contract.RealEstateRental;
-import com.lsiproject.app.propertymanagementmicroservice.DTOs.PropertyCreationDTO;
+import com.lsiproject.app.propertymanagementmicroservice.CreationDTOs.PropertyCreationDTO;
 import com.lsiproject.app.propertymanagementmicroservice.entities.Property;
+import com.lsiproject.app.propertymanagementmicroservice.entities.Room;
+import com.lsiproject.app.propertymanagementmicroservice.entities.RoomImage;
 import com.lsiproject.app.propertymanagementmicroservice.repository.PropertyRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.tx.gas.StaticGasProvider;
@@ -18,7 +22,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 /**
  * Service to manage property CRUD operations, synchronizing off-chain data (MySQL)
@@ -29,75 +32,82 @@ public class PropertyService {
 
     private final PropertyRepository propertyRepository;
     private final RealEstateRental rentalContract;
+    private final SupabaseStorageService storageService;
+    private final RoomService roomService;
 
     public PropertyService(
             PropertyRepository propertyRepository,
             Web3j web3j,
             Credentials credentials,
             StaticGasProvider gasProvider,
-            @Value("${contract.rental.address}") String contractAddress
+            RoomService roomService,
+            @Value("${contract.rental.address}") String contractAddress,
+            SupabaseStorageService storageService
     ) {
         this.propertyRepository = propertyRepository;
+        this.roomService = roomService;
 
         // Load the deployed contract wrapper
         this.rentalContract = RealEstateRental.load(
                 contractAddress, web3j, credentials, gasProvider
         );
+        this.storageService = storageService;
     }
 
     /**
-     * Creates a new property off-chain and synchronously lists it on-chain.
-     * The owner details are received from the JWT claims (Stateless Auth).
-     * @param dto The property details.
+     * Creates a new property off-chain, lists it on-chain, and uploads rooms/images to Supabase.
+     * @param dto The property details, including nested rooms/images.
      * @param ownerId The ID of the owner (from JWT claims).
      * @param ownerEthAddress The wallet address of the owner (from JWT claims).
      * @return The saved Property entity.
      * @throws Exception if the blockchain transaction fails.
      */
     @Transactional
-    public Property createProperty(PropertyCreationDTO dto, Long ownerId, String ownerEthAddress) throws Exception {
+    public Property createProperty(
+            PropertyCreationDTO dto,
+            Long ownerId,
+            String ownerEthAddress
+    ) throws Exception {
 
-        // 1. Prepare Off-Chain Entity
+        // 1. Prepare Off-Chain Entity (basic fields)
         Property property = new Property();
-        // Map DTO fields to Entity
         property.setTitle(dto.title());
         property.setCountry(dto.country());
         property.setCity(dto.city());
+        property.setAddress(dto.address());
         property.setDescription(dto.description());
         property.setRentPerMonth(dto.rentPerMonth());
         property.setSecurityDeposit(dto.securityDeposit());
         property.setTypeOfRental(dto.typeOfRental());
-
         property.setOwnerId(ownerId);
         property.setOwnerEthAddress(ownerEthAddress);
-
         property.setIsActive(true);
         property.setIsAvailable(true);
 
-        // 2. Send Transaction to Blockchain (Write Operation)
-        org.web3j.protocol.core.methods.response.TransactionReceipt receipt = rentalContract.listProperty(
-                dto.propertyAddress(),
+        // Save preliminary to get ID
+        Property savedProperty = propertyRepository.save(property);
+        Long localPropertyId = savedProperty.getIdProperty();
+
+        // 2. Blockchain Transaction
+        var receipt = rentalContract.listProperty(
+                dto.fullAddress(),
                 dto.description(),
                 BigInteger.valueOf(dto.rentPerMonth()),
                 BigInteger.valueOf(dto.securityDeposit())
         ).send();
 
-        // 3. Extract On-Chain ID from Event
-        // We rely on the event emitted by the contract to get the immutable ID.
-        List<RealEstateRental.PropertyListedEventResponse> events = rentalContract.getPropertyListedEvents(receipt);
-
+        var events = rentalContract.getPropertyListedEvents(receipt);
         if (events.isEmpty()) {
-            // Rollback the MySQL transaction as the blockchain listing failed
-            throw new RuntimeException("Blockchain transaction failed to emit PropertyListed event.");
+            propertyRepository.delete(savedProperty);
+            throw new RuntimeException("Blockchain event missing - rollback");
         }
 
         Long onChainId = events.get(0).propertyId.longValue();
+        savedProperty.setOnChainId(onChainId);
 
-        // 4. Update and Save Off-Chain Data (Synchronization)
-        property.setOnChainId(onChainId);
-        property.setUpdatedAt(LocalDateTime.now());
-        return propertyRepository.save(property);
+        return propertyRepository.save(savedProperty);
     }
+
 
     /**
      * Updates a property off-chain and synchronously updates the details on-chain.
@@ -126,22 +136,23 @@ public class PropertyService {
         // 1. Send Update Transaction to Blockchain (using DTO fields)
         rentalContract.updateProperty(
                 BigInteger.valueOf(onChainId),
-                dto.country() + ", " + dto.city(), // **FIXED: Record accessors**
-                dto.description(), // **FIXED: Record accessors**
+                dto.fullAddress(),
+                dto.description(),
                 BigInteger.valueOf(dto.rentPerMonth()),
                 BigInteger.valueOf(dto.securityDeposit()),
-                dto.isAvailable() // **FIXED: Record accessors**
+                dto.isAvailable()
         ).send();
 
-        // 2. Update Off-Chain Data (assuming transaction success)
+        // 2. Update Off-Chain Data
         property.setTitle(dto.title()); //
-        property.setCountry(dto.country()); // **FIXED: Record accessors**
-        property.setCity(dto.city()); // **FIXED: Record accessors**
-        property.setDescription(dto.description()); // **FIXED: Record accessors**
-        property.setRentPerMonth(dto.rentPerMonth()); // **FIXED: Record accessors**
-        property.setSecurityDeposit(dto.securityDeposit()); // **FIXED: Record accessors**
-        property.setTypeOfRental(dto.typeOfRental()); // **FIXED: Record accessors**
-        property.setIsAvailable(dto.isAvailable()); // Sync the availability locally
+        property.setCountry(dto.country());
+        property.setCity(dto.city());
+        property.setAddress(dto.address());
+        property.setDescription(dto.description());
+        property.setRentPerMonth(dto.rentPerMonth());
+        property.setSecurityDeposit(dto.securityDeposit());
+        property.setTypeOfRental(dto.typeOfRental());
+        property.setIsAvailable(dto.isAvailable());
 
         property.setUpdatedAt(LocalDateTime.now());
         return propertyRepository.save(property);

@@ -22,9 +22,10 @@ public class RoomImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idImage; // Maps to idImage in UML
+    private Long idImage;
 
     private String url;
+    private String s3Key;
     private int orderIndex;
     private LocalDateTime uploadedAt;
 

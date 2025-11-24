@@ -46,6 +46,8 @@ public class SecurityConfig {
                         // Allow health checks or public endpoints if needed.
                         // NOTE: If you had authentication endpoints here, they belong in the Auth service, not here.
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/rooms/**").permitAll()
+                        .requestMatchers("/api/room-images/**").permitAll()
 
                         // Require authentication for all other endpoints
                         .anyRequest().authenticated()

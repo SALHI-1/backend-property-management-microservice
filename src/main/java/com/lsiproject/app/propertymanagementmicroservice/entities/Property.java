@@ -27,7 +27,7 @@ public class Property {
     //off-cjain id(in mysql)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idProperty;
+    private Long idProperty;
 
     //Link to the Smart Contract's property mapping ID
     @Column(unique = true, nullable = true) // Nullable until the first transaction confirms
@@ -36,6 +36,7 @@ public class Property {
     private String title;
     private String country;
     private String city;
+    private String address;
     private String longitude;
     private String latitude;
     private String description;

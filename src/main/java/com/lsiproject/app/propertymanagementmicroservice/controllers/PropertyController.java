@@ -1,7 +1,9 @@
 package com.lsiproject.app.propertymanagementmicroservice.controllers;
 
-import com.lsiproject.app.propertymanagementmicroservice.DTOs.PropertyCreationDTO;
-import com.lsiproject.app.propertymanagementmicroservice.DTOs.PropertyUpdateDTO;
+import com.lsiproject.app.propertymanagementmicroservice.CreationDTOs.PropertyCreationDTO;
+import com.lsiproject.app.propertymanagementmicroservice.ResponseDTOs.PropertyResponseDTO;
+import com.lsiproject.app.propertymanagementmicroservice.UpdateDTOs.PropertyUpdateDTO;
+import com.lsiproject.app.propertymanagementmicroservice.mappers.PropertyMapper;
 import com.lsiproject.app.propertymanagementmicroservice.entities.Property;
 import com.lsiproject.app.propertymanagementmicroservice.security.UserPrincipal;
 
@@ -13,9 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/properties")
@@ -23,6 +25,7 @@ import java.util.Optional;
 public class PropertyController {
 
     private final PropertyService propertyService;
+    private final PropertyMapper propertyMapper; // Inject the mapper
 
     // --- CREATE ---
 
@@ -34,17 +37,19 @@ public class PropertyController {
      * @return 201 Created with the new Property entity.
      */
     @PostMapping
-    public ResponseEntity<Property> createProperty(
+    public ResponseEntity<PropertyResponseDTO> createProperty(
             @Valid @RequestBody PropertyCreationDTO dto,
             @AuthenticationPrincipal UserPrincipal principal) {
 
         try {
-            // Extract necessary data from the Security Context (Stateless Auth)
             Long ownerId = principal.getIdUser();
             String ownerEthAddress = principal.getWalletAddress();
 
-            Property newProperty = propertyService.createProperty(dto, ownerId, ownerEthAddress);
-            return new ResponseEntity<>(newProperty, HttpStatus.CREATED);
+            Property newProperty = propertyService.createProperty(dto,ownerId, ownerEthAddress);
+
+            PropertyResponseDTO responseDto = propertyMapper.toDto(newProperty);
+
+            return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
         } catch (Exception e) {
             // Log the exception (e.g., blockchain transaction failure)
             System.err.println("Property creation failed: " + e.getMessage());
@@ -54,15 +59,22 @@ public class PropertyController {
     }
 
     // --- READ ---
-
     /**
      * Retrieves all listed properties.
      * Accessible by any authenticated user.
      * * @return 200 OK with a list of properties.
      */
     @GetMapping
-    public ResponseEntity<List<Property>> getAllProperties() {
-        return ResponseEntity.ok(propertyService.getAllProperties());
+    public ResponseEntity<List<PropertyResponseDTO>> getAllProperties() {
+        List<Property> property = propertyService.getAllProperties();
+
+        List<PropertyResponseDTO> responseDto = new ArrayList<>();
+
+        for(Property prop : property){
+            PropertyResponseDTO newResponseDto = propertyMapper.toDto(prop);
+            responseDto.add(newResponseDto);
+        }
+        return ResponseEntity.ok(responseDto);
     }
 
     /**
@@ -71,10 +83,13 @@ public class PropertyController {
      * @return 200 OK with the Property entity.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Property> getPropertyById(@PathVariable Long id) {
+    public ResponseEntity<PropertyResponseDTO> getPropertyById(@PathVariable Long id) {
         try {
             Property property = propertyService.getProperty(id);
-            return ResponseEntity.ok(property);
+
+            PropertyResponseDTO responseDto = propertyMapper.toDto(property);
+
+            return ResponseEntity.ok(responseDto);
 
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
@@ -90,10 +105,10 @@ public class PropertyController {
     // --- UPDATE ---
 
     /**
-     * Updates an existing property, synchronizing changes to the blockchain.
+     * Updates the infos of an existing property, synchronizing changes to the blockchain.
+     * it doesn't include the rooms and the images , only the infos like(description , address ....)
      * Accessible only by the owner of the property (implicit check in the service layer).
      * * @param id The local database ID of the property to update.
-     * @param updatedProperty The new property data.
      * @param principal The authenticated user (for authorization check).
      * @return 200 OK with the updated Property entity.
      */
