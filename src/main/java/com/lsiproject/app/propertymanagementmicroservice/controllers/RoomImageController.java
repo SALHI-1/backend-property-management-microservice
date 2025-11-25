@@ -32,6 +32,7 @@ public class RoomImageController {
      * GET /api/room-images/{imageId} : Get image metadata by ID.
      * NOTE: Requires imageService.getImageById(imageId) to exist.
      */
+
     @GetMapping("/{imageId}")
     public ResponseEntity<RoomImageResponseDTO> getImageById(@PathVariable Long imageId) {
         try {

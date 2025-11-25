@@ -43,7 +43,9 @@ public class RoomImageService {
 
         // 1. Upload to Supabase
         String imageUrl = storageService.uploadImageFile(file, propertyId, roomFolder);
+        //String imageUrl = "test-url";
         String s3Key = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+        //String s3Key = "test key";
 
         // 2. Save Metadata
         RoomImage image = new RoomImage();

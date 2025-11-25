@@ -87,7 +87,7 @@ public class RoomService {
                 String roomFolder = roomName.replaceAll("[^a-zA-Z0-9\\-_]", "-").toLowerCase();
                 String objectPath = propertyId + "/" + roomFolder + "/" + image.getS3Key();
 
-                storageService.deleteFile(objectPath);
+                //storageService.deleteFile(objectPath);
 
                 // Remove from repository to prevent orphaned foreign keys, although cascade should handle this.
                 imageRepository.delete(image);
