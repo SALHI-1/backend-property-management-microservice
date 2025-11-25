@@ -26,7 +26,7 @@ but when the authentication and authorization microservices are completed , the 
 500 Internal Server Error: Transaction or server failure.
 
 2. Read Properties (GET)
-   2.1 Get All Properties
+   Get All Properties
    /api/properties
    Function: Retrieves a list of all active property listings from the database.
 
@@ -35,7 +35,8 @@ but when the authentication and authorization microservices are completed , the 
 
 * 200 OK: Returns a list of PropertyResponseDTO(u ca find it in src/java/main/ResponseDTOs).
 
-2.2 Get Property by ID
+3. Get Property by ID
+
 /api/properties/{id}
 * Function: Retrieves a single property using its local database ID.
 
@@ -47,7 +48,7 @@ but when the authentication and authorization microservices are completed , the 
 
 404 Not Found: Property ID does not exist.
 
-3. Update Property (PUT)
+4. Update Property (PUT)
    /api/properties/{id}
    Function: Updates core property details (e.g., title, description, price, availability). This triggers a synchronous on-chain update.
 
@@ -67,7 +68,7 @@ but when the authentication and authorization microservices are completed , the 
 
 500 Internal Server Error: Transaction or server failure.
 
-4. Delete Property (DELETE)
+5. Delete Property (DELETE)
    /api/properties/{id}
    Function: Delists the property from the blockchain and marks it as inactive/unavailable in the database.
 
