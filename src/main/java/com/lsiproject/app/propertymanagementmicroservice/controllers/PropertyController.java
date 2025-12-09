@@ -5,6 +5,7 @@ import com.lsiproject.app.propertymanagementmicroservice.ResponseDTOs.PropertyRe
 import com.lsiproject.app.propertymanagementmicroservice.UpdateDTOs.PropertyUpdateDTO;
 import com.lsiproject.app.propertymanagementmicroservice.mappers.PropertyMapper;
 import com.lsiproject.app.propertymanagementmicroservice.entities.Property;
+import com.lsiproject.app.propertymanagementmicroservice.searchDTOs.PropertySearchDTO;
 import com.lsiproject.app.propertymanagementmicroservice.security.UserPrincipal;
 
 import com.lsiproject.app.propertymanagementmicroservice.services.PropertyService;
@@ -55,6 +56,12 @@ public class PropertyController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .build();
         }
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<List<Property>> searchProperties(@RequestBody PropertySearchDTO searchDTO) {
+        List<Property> properties = propertyService.searchProperties(searchDTO);
+        return ResponseEntity.ok(properties);
     }
 
     // --- READ ---

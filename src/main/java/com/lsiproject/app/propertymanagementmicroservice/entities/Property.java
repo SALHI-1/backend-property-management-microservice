@@ -37,14 +37,14 @@ public class Property {
     private String country;
     private String city;
     private String address;
-    private String longitude;
-    private String latitude;
+    private Double longitude;
+    private Double latitude;
     private String description;
 
     @Enumerated(EnumType.STRING)
     private TypeOfRental typeOfRental;
 
-    private Long rentPerMonth;
+    private Long rentAmount;
     private Long securityDeposit;
 
     // --- Ownership and Status Fields ---

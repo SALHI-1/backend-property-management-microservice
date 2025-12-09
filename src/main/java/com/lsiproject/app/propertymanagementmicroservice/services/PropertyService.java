@@ -1,11 +1,11 @@
 package com.lsiproject.app.propertymanagementmicroservice.services;
 
 import com.lsiproject.app.propertymanagementmicroservice.UpdateDTOs.PropertyUpdateDTO;
-import com.lsiproject.app.propertymanagementmicroservice.Enums.TypeOfRental;
 import com.lsiproject.app.propertymanagementmicroservice.contract.RealEstateRental;
 import com.lsiproject.app.propertymanagementmicroservice.CreationDTOs.PropertyCreationDTO;
 import com.lsiproject.app.propertymanagementmicroservice.entities.Property;
 import com.lsiproject.app.propertymanagementmicroservice.repository.PropertyRepository;
+import com.lsiproject.app.propertymanagementmicroservice.searchDTOs.PropertySearchDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +51,18 @@ public class PropertyService {
     }
 
     /**
+     * Searches for properties based on dynamic criteria (City, Rent, Type, Location).
+     * @param searchDTO Object containing filter parameters.
+     * @return List of matching properties.
+     */
+    public List<Property> searchProperties(PropertySearchDTO searchDTO) {
+        // Use the specification to build the query dynamically
+        return propertyRepository.findAll(
+                PropertySpecification.getPropertiesByCriteria(searchDTO)
+        );
+    }
+
+    /**
      * Creates a new property off-chain, lists it on-chain, and uploads rooms/images to Supabase.
      * @param dto The property details, including nested rooms/images.
      * @param ownerId The ID of the owner (from JWT claims).
@@ -65,14 +77,20 @@ public class PropertyService {
             String ownerEthAddress
     ) throws Exception {
 
-        // 1. Prepare Off-Chain Entity (basic fields)
+
+        //TODO:: (YAHYA) check if the ownerId exits in the userManagementMicroservice
+
+
         Property property = new Property();
+        property.setOnChainId(dto.onChainId());
         property.setTitle(dto.title());
         property.setCountry(dto.country());
         property.setCity(dto.city());
         property.setAddress(dto.address());
+        property.setLongitude(dto.longitude());
+        property.setLatitude(dto.latitude());
         property.setDescription(dto.description());
-        property.setRentPerMonth(dto.rentPerMonth());
+        property.setRentAmount(dto.rentAmount());
         property.setSecurityDeposit(dto.securityDeposit());
         property.setTypeOfRental(dto.typeOfRental());
         property.setOwnerId(ownerId);
@@ -80,8 +98,6 @@ public class PropertyService {
         property.setIsActive(true);
         property.setIsAvailable(true);
 
-        // Save preliminary to get ID
-        Property savedProperty = propertyRepository.save(property);
 //        Long localPropertyId = savedProperty.getIdProperty();
 //
 //        // 2. Blockchain Transaction
@@ -101,7 +117,7 @@ public class PropertyService {
 //        Long onChainId = events.get(0).propertyId.longValue();
 //        savedProperty.setOnChainId(onChainId);
 
-        return propertyRepository.save(savedProperty);
+        return propertyRepository.save(property);
     }
 
 
@@ -145,7 +161,7 @@ public class PropertyService {
         property.setCity(dto.city());
         property.setAddress(dto.address());
         property.setDescription(dto.description());
-        property.setRentPerMonth(dto.rentPerMonth());
+        property.setRentAmount(dto.rentAmount());
         property.setSecurityDeposit(dto.securityDeposit());
         property.setTypeOfRental(dto.typeOfRental());
         property.setIsAvailable(dto.isAvailable());
@@ -199,45 +215,45 @@ public class PropertyService {
      * NOTE: This is slow and should NOT be used in production.
      * @return List of Property objects mapped from the blockchain data.
      */
-    public List<Property> getAllPropertiesFromChain() throws Exception {
-        List<Property> properties = new ArrayList<>();
-
-        // 1. Get total number of properties listed on the contract
-        BigInteger counter = rentalContract.propertyCounter().send();
-        long totalProperties = counter.longValue();
-
-        // 2. Loop from ID 1 up to the total count
-        for (long i = 1; i <= totalProperties; i++) {
-            try {
-                // 3. Call the view function to retrieve the Solidity struct data
-                RealEstateRental.Property onChainData = rentalContract.getProperty(
-                        BigInteger.valueOf(i)
-                ).send();
-
-                // 4. Map the blockchain data (minimal) to the Java Entity (detailed)
-                Property p = new Property();
-                p.setOnChainId(i);
-                p.setOwnerEthAddress(onChainData.owner);
-
-                // Note: The Property Entity requires more fields than the contract provides (title, city, etc.).
-                // We will populate them with placeholder/minimal values for testing.
-                p.setTitle("Property ID " + i + " (On-Chain)");
-                p.setDescription(onChainData.description);
-                p.setRentPerMonth(onChainData.rentPerMonth.longValue());
-                p.setSecurityDeposit(onChainData.securityDeposit.longValue());
-                p.setIsAvailable(onChainData.isAvailable);
-                p.setIsActive(onChainData.isActive);
-                p.setTypeOfRental(TypeOfRental.MONTHLY); // Default for test view
-
-                properties.add(p);
-            } catch (Exception e) {
-                // If getProperty(i) fails (e.g., if a property was deleted without cleaning up the counter), skip it.
-                System.err.println("WARN: Failed to retrieve property ID " + i + " from blockchain: " + e.getMessage());
-            }
-        }
-
-        return properties;
-    }
+//    public List<Property> getAllPropertiesFromChain() throws Exception {
+//        List<Property> properties = new ArrayList<>();
+//
+//        // 1. Get total number of properties listed on the contract
+//        BigInteger counter = rentalContract.propertyCounter().send();
+//        long totalProperties = counter.longValue();
+//
+//        // 2. Loop from ID 1 up to the total count
+//        for (long i = 1; i <= totalProperties; i++) {
+//            try {
+//                // 3. Call the view function to retrieve the Solidity struct data
+//                RealEstateRental.Property onChainData = rentalContract.getProperty(
+//                        BigInteger.valueOf(i)
+//                ).send();
+//
+//                // 4. Map the blockchain data (minimal) to the Java Entity (detailed)
+//                Property p = new Property();
+//                p.setOnChainId(i);
+//                p.setOwnerEthAddress(onChainData.owner);
+//
+//                // Note: The Property Entity requires more fields than the contract provides (title, city, etc.).
+//                // We will populate them with placeholder/minimal values for testing.
+//                p.setTitle("Property ID " + i + " (On-Chain)");
+//                p.setDescription(onChainData.description);
+//                p.setRentPerMonth(onChainData.rentPerMonth.longValue());
+//                p.setSecurityDeposit(onChainData.securityDeposit.longValue());
+//                p.setIsAvailable(onChainData.isAvailable);
+//                p.setIsActive(onChainData.isActive);
+//                p.setTypeOfRental(TypeOfRental.MONTHLY); // Default for test view
+//
+//                properties.add(p);
+//            } catch (Exception e) {
+//                // If getProperty(i) fails (e.g., if a property was deleted without cleaning up the counter), skip it.
+//                System.err.println("WARN: Failed to retrieve property ID " + i + " from blockchain: " + e.getMessage());
+//            }
+//        }
+//
+//        return properties;
+//    }
 
     /**
      * Retrieves a single property by ID and performs an on-chain status check

@@ -14,13 +14,12 @@ public record PropertyUpdateDTO(
         @NotBlank String country,
         @NotBlank String city,
         @NotBlank String address,
+        @NotBlank Double longitude,
+        @NotBlank Double latitude,
         @NotBlank String description,
-
-        // Rental Terms (Mandatory update for on-chain integrity)
         @NotNull TypeOfRental typeOfRental,
-        @NotNull Long rentPerMonth,
+        @NotNull Long rentAmount,
         @NotNull Long securityDeposit,
-
         @NotNull Boolean isAvailable 
 ) {
     public String fullAddress() {

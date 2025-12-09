@@ -1,6 +1,7 @@
 package com.lsiproject.app.propertymanagementmicroservice.ResponseDTOs;
 
 import com.lsiproject.app.propertymanagementmicroservice.Enums.TypeOfRental;
+import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,10 +14,12 @@ public record PropertyResponseDTO(
         String country,
         String city,
         String address,
+        Double longitude,
+        Double latitude,
         String description,
         TypeOfRental typeOfRental,
 
-        Long rentPerMonth,
+        Long rentAmount,
         Long securityDeposit,
         Boolean isAvailable,
         Boolean isActive,
