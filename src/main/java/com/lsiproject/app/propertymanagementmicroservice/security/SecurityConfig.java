@@ -35,7 +35,9 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/property-microservice/properties/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/property-microservice/rooms/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/property-microservice/properties/room-images/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
