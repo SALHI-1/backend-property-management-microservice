@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @RestController
-@RequestMapping("/api/room-images")
+@RequestMapping("/api/property-microservice/properties/room-images")
 @AllArgsConstructor
 public class RoomImageController {
 

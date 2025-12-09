@@ -5,16 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-
 import java.util.*;
 
-import java.util.stream.Collectors;
-
-/**
- * Utilitaire pour extraire les informations (Claims) du JWT par décodage manuel Base64.
- * Cette méthode suppose que la validation de la signature (sécurité) est effectuée
- * par l'API Gateway en amont.
- */
 @Service
 public class JwtUtil {
 
@@ -22,46 +14,33 @@ public class JwtUtil {
 
     /**
      * Extrait le Payload du JWT, le décode de Base64 et le parse en Map de Claims.
-     * @param token Le JWT complet (Header.Payload.Signature).
-     * @return Map<String, Object> contenant les claims, ou null en cas d'erreur.
      */
     public Map<String, Object> extractClaimsFromPayload(String token) {
         try {
-            // 1. Séparer les parties du JWT
             String[] parts = token.split("\\.");
             if (parts.length != 3) {
-                System.err.println("Le token JWT n'a pas le format attendu (Header.Payload.Signature)");
                 return null;
             }
 
-            // 2. Extraire la partie Payload (index 1)
             String payloadEncoded = parts[1];
-
-            // 3. Remplacer les caractères Base64 URL-safe (- et _) par des caractères standard (+ et /)
-            // et ajouter le padding si nécessaire (pour certains implémentations Base64)
             String payloadPadded = payloadEncoded.replace('-', '+').replace('_', '/');
             while (payloadPadded.length() % 4 != 0) {
                 payloadPadded += "=";
             }
 
-            // 4. Décoder de Base64
             byte[] decodedBytes = Base64.getDecoder().decode(payloadPadded);
             String payloadJson = new String(decodedBytes, StandardCharsets.UTF_8);
 
-            // 5. Parser le JSON en Map
-            // Utilisez le type Map<String, Object> pour représenter les claims
             return objectMapper.readValue(payloadJson, Map.class);
 
         } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException | JsonProcessingException e) {
-            System.err.println("Erreur lors de l'extraction ou du décodage du Payload du JWT: " + e.getMessage());
+            System.err.println("Erreur decoding JWT Payload: " + e.getMessage());
             return null;
         }
     }
 
     /**
-     * Extrait les informations nécessaires pour créer un UserPrincipal.
-     * @param token Le JWT.
-     * @return L'objet UserPrincipal, ou null en cas d'échec.
+     * Adapté pour la structure spécifique du token OAuth2/OIDC fourni.
      */
     public UserPrincipal extractUserPrincipal(String token) {
         Map<String, Object> claims = extractClaimsFromPayload(token);
@@ -70,32 +49,41 @@ public class JwtUtil {
         }
 
         try {
-            // NOTE: Assurez-vous que les noms des claims correspondent à ceux générés par votre microservice d'authentification.
+            // 1. Extraire l'adresse du portefeuille
+            // Le token contient "sub" et "wallet" avec la même valeur.
+            // On priorise "sub" car c'est le standard JWT.
+            String walletAddress = String.valueOf(claims.getOrDefault("sub", claims.get("wallet")));
 
-            // 1. Extraire l'adresse du portefeuille (walletAddress)
-            // C'est désormais le 'sub' (Subject) ou le claim 'walletAddress'
-            String walletAddress = claims.getOrDefault("sub", claims.get("walletAddress")).toString();
-
-            // 2. Extraire l'ID utilisateur interne (userId)
-            // L'ID est maintenant un claim personnalisé et non le subject.
-            Long idUser = Long.valueOf(claims.get("userId").toString());
-
-            // 3. Extraire les rôles (supposons un tableau de chaînes ou une chaîne séparée par des virgules)
-            Set<String> roles = Collections.emptySet();
-            Object rolesClaim = claims.get("roles");
-
-            if (rolesClaim instanceof String) {
-                roles = Arrays.stream(((String) rolesClaim).split(","))
-                        .map(String::trim)
-                        .collect(Collectors.toSet());
-            } else if (rolesClaim instanceof List) {
-                roles = ((List<String>) rolesClaim).stream().map(String::valueOf).collect(Collectors.toSet());
+            // 2. Extraire l'ID (Format: "id": 1)
+            // Attention: claims.get("id") renvoie un Integer, on le convertit en String puis en Long pour la sécurité
+            Long idUser = null;
+            if (claims.get("id") != null) {
+                idUser = Long.valueOf(claims.get("id").toString());
             }
+
+            // 3. Extraire le Rôle (Format: "role": "ROLE_USER")
+            Set<String> roles = new HashSet<>();
+            Object roleClaim = claims.get("role");
+
+            if (roleClaim != null) {
+                String roleStr = roleClaim.toString();
+
+                // IMPORTANT: Votre classe UserPrincipal ajoute déjà "ROLE_" dans son constructeur.
+                // Si le token contient déjà "ROLE_USER", UserPrincipal créerait "ROLE_ROLE_USER".
+                // Nous devons donc nettoyer la chaîne ici.
+                if (roleStr.startsWith("ROLE_")) {
+                    roleStr = roleStr.replace("ROLE_", "");
+                }
+                roles.add(roleStr);
+            }
+
+            // Note: Le token contient aussi 'email', vous pouvez modifier UserPrincipal pour le stocker si nécessaire.
 
             return new UserPrincipal(idUser, walletAddress, roles);
 
         } catch (Exception e) {
             System.err.println("Erreur de conversion des Claims en UserPrincipal: " + e.getMessage());
+            e.printStackTrace(); // Utile pour le debug
             return null;
         }
     }

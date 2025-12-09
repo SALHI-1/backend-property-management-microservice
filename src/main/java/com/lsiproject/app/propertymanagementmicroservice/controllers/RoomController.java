@@ -21,7 +21,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/rooms")
+@RequestMapping("/api/property-microservice/rooms")
 @AllArgsConstructor
 public class RoomController {
 

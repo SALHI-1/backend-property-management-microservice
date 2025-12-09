@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @RestController
-@RequestMapping("/api/properties")
+@RequestMapping("/api/property-microservice/properties")
 @AllArgsConstructor
 public class PropertyController {
 
