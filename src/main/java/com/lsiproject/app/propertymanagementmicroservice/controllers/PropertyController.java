@@ -2,6 +2,7 @@ package com.lsiproject.app.propertymanagementmicroservice.controllers;
 
 import com.lsiproject.app.propertymanagementmicroservice.CreationDTOs.PropertyCreationDTO;
 import com.lsiproject.app.propertymanagementmicroservice.ResponseDTOs.PropertyResponseDTO;
+import com.lsiproject.app.propertymanagementmicroservice.UpdateDTOs.AvailabilityDTO;
 import com.lsiproject.app.propertymanagementmicroservice.UpdateDTOs.PropertyUpdateDTO;
 import com.lsiproject.app.propertymanagementmicroservice.mappers.PropertyMapper;
 import com.lsiproject.app.propertymanagementmicroservice.entities.Property;
@@ -109,6 +110,12 @@ public class PropertyController {
         }
     }
 
+    @GetMapping("/{id}/isAvailable")
+    public ResponseEntity<Boolean> isPropertyAvailable(@PathVariable Long id) {
+        return ResponseEntity.ok(propertyService.isPropertyAvailable(id));
+    }
+
+
 
     // --- UPDATE ---
 
@@ -140,6 +147,15 @@ public class PropertyController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @GetMapping("/{id}/availability")
+    public ResponseEntity<Void> updateAvailabilityToFalse(
+            @PathVariable Long id) {
+
+        propertyService.updateAvailabilityToFalse(id);
+        return ResponseEntity.noContent().build();
+    }
+
 
     // --- DELETE ---
 

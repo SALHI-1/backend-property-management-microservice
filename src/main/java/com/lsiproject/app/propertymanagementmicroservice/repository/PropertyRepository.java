@@ -8,4 +8,7 @@ import java.util.Optional;
 
 public interface PropertyRepository extends JpaRepository<Property,Long>, JpaSpecificationExecutor<Property> {
     Optional<Property> findByOnChainId(Long onChainId);
+
+    boolean existsByIdPropertyAndIsAvailableTrue(Long id);
+
 }

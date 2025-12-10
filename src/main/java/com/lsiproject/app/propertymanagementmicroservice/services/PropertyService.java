@@ -7,8 +7,10 @@ import com.lsiproject.app.propertymanagementmicroservice.entities.Property;
 import com.lsiproject.app.propertymanagementmicroservice.repository.PropertyRepository;
 import com.lsiproject.app.propertymanagementmicroservice.searchDTOs.PropertySearchDTO;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.tx.gas.StaticGasProvider;
@@ -170,6 +172,15 @@ public class PropertyService {
         return propertyRepository.save(property);
     }
 
+    public void updateAvailabilityToFalse(Long id) {
+        Property property = propertyRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        property.setIsAvailable(false);
+        propertyRepository.save(property);
+    }
+
+
     /**
      * Deletes a property by delisting it on-chain and marking it inactive in the database.
      * @param id The database ID (idProperty).
@@ -206,6 +217,10 @@ public class PropertyService {
 
     public List<Property> getAllProperties() {
         return propertyRepository.findAll();
+    }
+
+    public boolean isPropertyAvailable(Long id){
+        return propertyRepository.existsByIdPropertyAndIsAvailableTrue(id);
     }
 
 

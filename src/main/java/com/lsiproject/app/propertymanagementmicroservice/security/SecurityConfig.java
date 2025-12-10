@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/property-microservice/properties/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/property-microservice/rooms/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/property-microservice/properties/room-images/**").permitAll()
+                        .requestMatchers("/api/property-microservice/properties/search").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
