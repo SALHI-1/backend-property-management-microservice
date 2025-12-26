@@ -49,6 +49,15 @@ public class RoomService {
         room.setOrderIndex(roomDto.orderIndex());
         room.setProperty(property);
 
+
+        if (property.getRooms() == null) {
+            property.setRooms(new ArrayList<>());
+        }
+        property.getRooms().add(room);
+
+        property.setTotal_Rooms(property.getRooms().size());
+
+
         // 3. Save Room (This saves nested images due to cascade)
         return roomRepository.save(room);
     }
@@ -56,8 +65,6 @@ public class RoomService {
     /**
      * Updates descriptive fields of a room (name, orderIndex).
      * @param roomId The ID of the room to update.
-     * @param newName The new name.
-     * @param newOrderIndex The new order index.
      * @return The updated Room entity.
      */
     @Transactional
@@ -65,8 +72,10 @@ public class RoomService {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new NoSuchElementException("Room not found with ID: " + roomId));
 
-        room.setName(dto.name());
-        room.setOrderIndex(dto.orderIndex());
+        if(dto.name() != null){room.setName(dto.name());}
+        if(dto.orderIndex() != null){room.setOrderIndex(dto.orderIndex());}
+
+
         return roomRepository.save(room);
     }
 

@@ -87,6 +87,8 @@ public class PropertyService {
         property.setLongitude(dto.longitude());
         property.setLatitude(dto.latitude());
         property.setDescription(dto.description());
+        property.setSqM(dto.sqM());
+        property.setTypeOfProperty(dto.typeOfProperty());
         property.setRentAmount(dto.rentAmount());
         property.setSecurityDeposit(dto.securityDeposit());
         property.setTypeOfRental(dto.typeOfRental());
@@ -124,15 +126,43 @@ public class PropertyService {
         }
 
         // 2. Update Off-Chain Data
-        property.setTitle(dto.title()); //
-        property.setCountry(dto.country());
-        property.setCity(dto.city());
-        property.setAddress(dto.address());
-        property.setDescription(dto.description());
-        property.setRentAmount(dto.rentAmount());
-        property.setSecurityDeposit(dto.securityDeposit());
-        property.setTypeOfRental(dto.typeOfRental());
-        property.setIsAvailable(dto.isAvailable());
+        if (dto.title() != null) {
+            property.setTitle(dto.title());
+        }
+        if (dto.country() != null) {
+            property.setCountry(dto.country());
+        }
+        if (dto.city() != null) {
+            property.setCity(dto.city());
+        }
+        if (dto.address() != null) {
+            property.setAddress(dto.address());
+        }
+        if (dto.description() != null) {
+            property.setDescription(dto.description());
+        }
+        if (dto.typeOfProperty() != null) {
+            property.setTypeOfProperty(dto.typeOfProperty());
+        }
+        if (dto.SqM() != null) {
+            property.setSqM(dto.SqM());
+        }
+        if (dto.total_Rooms() != null) {
+            property.setTotal_Rooms(dto.total_Rooms());
+        }
+        if (dto.rentAmount() != null) {
+            property.setRentAmount(dto.rentAmount());
+        }
+        if (dto.securityDeposit() != null) {
+            property.setSecurityDeposit(dto.securityDeposit());
+        }
+        if (dto.typeOfRental() != null) {
+            property.setTypeOfRental(dto.typeOfRental());
+        }
+        if (dto.isAvailable() != null) {
+            property.setIsAvailable(dto.isAvailable());
+        }
+
 
         property.setUpdatedAt(LocalDateTime.now());
         return propertyRepository.save(property);

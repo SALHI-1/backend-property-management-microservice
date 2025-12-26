@@ -1,5 +1,6 @@
 package com.lsiproject.app.propertymanagementmicroservice.entities;
 
+import com.lsiproject.app.propertymanagementmicroservice.Enums.PropertyType;
 import com.lsiproject.app.propertymanagementmicroservice.Enums.TypeOfRental;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -40,6 +41,9 @@ public class Property {
     private Double longitude;
     private Double latitude;
     private String description;
+    private Integer SqM;
+    private Integer total_Rooms;
+    private PropertyType typeOfProperty;
 
     @Enumerated(EnumType.STRING)
     private TypeOfRental typeOfRental;
@@ -58,10 +62,12 @@ public class Property {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    private Boolean isActive; // Flag for soft deletion or listing status
+    private Boolean isActive;
     private Boolean isAvailable;
     private double rating;
     private int nombreEtoiles;
+
+
 
     // --- Relationships ---
 

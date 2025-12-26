@@ -1,5 +1,6 @@
 package com.lsiproject.app.propertymanagementmicroservice.UpdateDTOs;
 
+import com.lsiproject.app.propertymanagementmicroservice.Enums.PropertyType;
 import com.lsiproject.app.propertymanagementmicroservice.Enums.TypeOfRental;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,17 +11,20 @@ import jakarta.validation.constraints.NotNull;
  */
 public record PropertyUpdateDTO(
         // Descriptive Fields
-        @NotBlank String title,
-        @NotBlank String country,
-        @NotBlank String city,
-        @NotBlank String address,
-        @NotBlank Double longitude,
-        @NotBlank Double latitude,
-        @NotBlank String description,
-        @NotNull TypeOfRental typeOfRental,
-        @NotNull Long rentAmount,
-        @NotNull Long securityDeposit,
-        @NotNull Boolean isAvailable 
+         String title,
+         String country,
+         String city,
+         String address,
+         Double longitude,
+         Double latitude,
+         String description,
+         Integer SqM,
+         PropertyType typeOfProperty,
+         TypeOfRental typeOfRental,
+         Integer total_Rooms,
+         Long rentAmount,
+         Long securityDeposit,
+         Boolean isAvailable
 ) {
     public String fullAddress() {
         return country + ", " + city + ", " + address;

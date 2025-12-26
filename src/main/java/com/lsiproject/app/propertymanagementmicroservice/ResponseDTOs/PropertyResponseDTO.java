@@ -1,10 +1,10 @@
 package com.lsiproject.app.propertymanagementmicroservice.ResponseDTOs;
 
+import com.lsiproject.app.propertymanagementmicroservice.Enums.PropertyType;
 import com.lsiproject.app.propertymanagementmicroservice.Enums.TypeOfRental;
 import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public record PropertyResponseDTO(
         Long idProperty,
@@ -17,6 +17,9 @@ public record PropertyResponseDTO(
         Double longitude,
         Double latitude,
         String description,
+        Integer sqm,
+        PropertyType typeOfProperty,
+        Integer totalRooms,
         TypeOfRental typeOfRental,
 
         Long rentAmount,

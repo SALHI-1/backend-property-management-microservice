@@ -1,5 +1,6 @@
 package com.lsiproject.app.propertymanagementmicroservice.CreationDTOs;
 
+import com.lsiproject.app.propertymanagementmicroservice.Enums.PropertyType;
 import com.lsiproject.app.propertymanagementmicroservice.Enums.TypeOfRental;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,12 +20,12 @@ public record PropertyCreationDTO(
         @NotNull Double longitude,
         @NotNull Double latitude,
         @NotBlank String description,
+        @NotNull Integer sqM,
+        @NotNull PropertyType typeOfProperty,
         @NotNull TypeOfRental typeOfRental,
         @NotNull Long rentAmount,
         @NotNull Long securityDeposit
-//        @NotNull(message = "The property must include at least one room definition.")
-//        @Size(min = 1, message = "At least one room definition is required.")
-//        List<RoomCreationDTO> rooms
+
 ) {
 
     public String fullAddress() {
