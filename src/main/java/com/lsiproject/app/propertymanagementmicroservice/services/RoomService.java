@@ -118,4 +118,14 @@ public class RoomService {
     public List<Room> getAllRooms() {
         return roomRepository.findAll();
     }
+
+    /**
+     * Retrieves all rooms associated with a specific property ID.
+     * @param propertyId The ID of the property.
+     * @return List of Room entities.
+     */
+    public List<Room> getRoomsByPropertyId(Long propertyId) {
+        // Utilisation de la méthode définie dans le repository
+        return roomRepository.findByProperty_IdPropertyOrderByOrderIndexAsc(propertyId);
+    }
 }

@@ -60,6 +60,28 @@ public class RoomController {
     }
 
     /**
+     * GET /api/property-microservice/rooms/property/{propertyId}
+     * Retrieves all rooms for a specific property.
+     */
+    @GetMapping("/property/{propertyId}")
+    public ResponseEntity<List<RoomResponseDTO>> getRoomsByPropertyId(@PathVariable Long propertyId) {
+        try {
+            // 1. Appel du service
+            List<Room> rooms = roomService.getRoomsByPropertyId(propertyId);
+
+            // 2. Mapping vers DTO
+            List<RoomResponseDTO> roomsDTO = rooms.stream()
+                    .map(roomMapper::toDto)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(roomsDTO);
+        } catch (Exception e) {
+            System.err.println("Error fetching rooms for property " + propertyId + ": " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * POST /api/rooms/property/{propertyId} : Create a new room with associated images.
      * Consumes multipart/form-data.
      */
