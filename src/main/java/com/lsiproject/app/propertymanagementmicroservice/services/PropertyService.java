@@ -223,6 +223,13 @@ public class PropertyService {
         return propertyRepository.existsByIdPropertyAndIsAvailableTrue(id);
     }
 
+    /**
+     * Récupère les 3 propriétés les plus récentes(just pour le moment, apres on vas utiliser un AI system pour ca) qui sont actives et disponibles.
+     */
+    public List<Property> getMostRecentProperties() {
+        return propertyRepository.findTop3ByIsActiveTrueAndIsAvailableTrueOrderByCreatedAtDesc();
+    }
+
 
     /**
      * TEMPORARY FUNCTION FOR TESTING WEB3J CONNECTIVITY.

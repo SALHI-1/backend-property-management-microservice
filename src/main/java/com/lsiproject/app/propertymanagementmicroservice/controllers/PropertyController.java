@@ -115,6 +115,29 @@ public class PropertyController {
         return ResponseEntity.ok(propertyService.isPropertyAvailable(id));
     }
 
+    /**
+     * Retrieves the 3 most recent(just for now) properties that are active and available.
+     * Accessible by any user (public).
+     * @return 200 OK with a list of maximum 3 properties.
+     */
+    @GetMapping("/featured")
+    public ResponseEntity<List<PropertyResponseDTO>> getRecentProperties() {
+        try {
+            List<Property> properties = propertyService.getMostRecentProperties();
+            List<PropertyResponseDTO> responseDto = new ArrayList<>();
+
+            for (Property prop : properties) {
+                PropertyResponseDTO dto = propertyMapper.toDto(prop);
+                responseDto.add(dto);
+            }
+
+            return ResponseEntity.ok(responseDto);
+        } catch (Exception e) {
+            System.err.println("Failed to fetch recent properties: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 
 
     // --- UPDATE ---

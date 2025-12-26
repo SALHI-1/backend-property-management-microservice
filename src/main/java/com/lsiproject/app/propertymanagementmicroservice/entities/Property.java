@@ -30,7 +30,7 @@ public class Property {
     private Long idProperty;
 
     //Link to the Smart Contract's property mapping ID
-    @Column(unique = true, nullable = true) // Nullable until the first transaction confirms
+    @Column(unique = true, nullable = false) // onchain id should never be null
     private Long onChainId;
 
     private String title;
