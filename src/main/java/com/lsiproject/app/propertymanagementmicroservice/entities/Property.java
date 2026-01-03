@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 
 import java.util.List;
 import java.time.LocalDateTime;
@@ -42,6 +43,7 @@ public class Property {
     private Double latitude;
     private String description;
     private Integer SqM;
+    @Formula("(SELECT COUNT(r.idRoom) FROM rooms r WHERE r.property_id = idProperty)")
     private Integer total_Rooms;
     private PropertyType typeOfProperty;
 
