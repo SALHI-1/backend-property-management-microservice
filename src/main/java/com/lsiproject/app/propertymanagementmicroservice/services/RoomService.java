@@ -50,12 +50,12 @@ public class RoomService {
         room.setProperty(property);
 
 
-        if (property.getRooms() == null) {
-            property.setRooms(new ArrayList<>());
-        }
-        property.getRooms().add(room);
+//        if (property.getRooms() == null) {
+//            property.setRooms(new ArrayList<>());
+//        }
+//        property.getRooms().add(room);
 
-        property.setTotal_Rooms(property.getRooms().size());
+//        property.setTotal_Rooms(property.getRooms().size());
 
 
         // 3. Save Room (This saves nested images due to cascade)
