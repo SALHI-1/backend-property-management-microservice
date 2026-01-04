@@ -1,4 +1,4 @@
-@Library('jenkins-shared-library') _
+@Library('PrincipalPipeLine') _
 
 standardBackendPipeline(
     appName: 'property-management-service',
