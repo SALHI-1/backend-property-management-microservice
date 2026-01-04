@@ -2,5 +2,5 @@
 
 standardBackendPipeline(
     appName: 'property-management-service',
-    registry: 'yassinekamouss'
+    registry: 'saaymo'
 )
